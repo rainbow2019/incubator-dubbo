@@ -86,7 +86,7 @@ public /**final**/ class URL implements Serializable {
 
     private final String path;
 
-    private final Map<String, String> parameters;
+    private final Map<String, String> parameters;//负责存URL中的参数key-value
 
     // ==== cache ====
 
@@ -148,7 +148,7 @@ public /**final**/ class URL implements Serializable {
 
     public URL(String protocol, String username, String password, String host, int port, String path, Map<String, String> parameters) {
         if ((username == null || username.length() == 0)
-                && password != null && password.length() > 0) {
+                && password != null && password.length() > 0) {//有密码没有用户名
             throw new IllegalArgumentException("Invalid url, password without username!");
         }
         this.protocol = protocol;
@@ -171,6 +171,8 @@ public /**final**/ class URL implements Serializable {
 
     /**
      * Parse url string
+     * 解析url字符串成URL对象
+     * 功能：从url字符串中依次解析出URL的属性，最终生成URL对象
      *
      * @param url URL string
      * @return URL instance
@@ -188,7 +190,7 @@ public /**final**/ class URL implements Serializable {
         String path = null;
         Map<String, String> parameters = null;
         int i = url.indexOf("?"); // seperator between body and parameters 
-        if (i >= 0) {
+        if (i >= 0) {//解析?之后的参数信息key-value
             String[] parts = url.substring(i + 1).split("\\&");
             parameters = new HashMap<String, String>();
             for (String part : parts) {
@@ -204,8 +206,9 @@ public /**final**/ class URL implements Serializable {
             }
             url = url.substring(0, i);
         }
+        // 解析protocol
         i = url.indexOf("://");
-        if (i >= 0) {
+        if (i >= 0) {//存在"://"
             if (i == 0) {
                 throw new IllegalStateException("url missing protocol: \"" + url + "\"");
             }
@@ -256,6 +259,7 @@ public /**final**/ class URL implements Serializable {
         return new URL(protocol, username, password, host, port, path, parameters);
     }
 
+    // 静态工具方法:URL编码encode
     public static String encode(String value) {
         if (value == null || value.length() == 0) {
             return "";
@@ -267,6 +271,7 @@ public /**final**/ class URL implements Serializable {
         }
     }
 
+    // 静态工具方法:URL解码decode
     public static String decode(String value) {
         if (value == null || value.length() == 0) {
             return "";
