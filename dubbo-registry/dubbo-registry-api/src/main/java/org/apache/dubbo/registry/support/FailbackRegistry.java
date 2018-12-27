@@ -244,7 +244,6 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             } else {
                 logger.error("Failed to register " + url + ", waiting for retry, cause: " + t.getMessage(), t);
             }
-
             // Record a failed registration request to a failed list, retry regularly
             addFailedRegistered(url);
         }
@@ -397,6 +396,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     }
 
     // ==== Template method ====
+    // 模板设计模式: 模板方法
 
     public abstract void doRegister(URL url);
 
