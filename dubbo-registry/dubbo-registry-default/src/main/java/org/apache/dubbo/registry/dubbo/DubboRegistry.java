@@ -96,10 +96,11 @@ public class DubboRegistry extends FailbackRegistry {
             clientLock.lock();
             try {
                 // Double check whether or not it is connected
+                // 加锁之后再一次检查
                 if (isAvailable()) {
                     return;
                 }
-                recover();
+                recover();//重新连接
             } finally {
                 clientLock.unlock();
             }
@@ -110,7 +111,9 @@ public class DubboRegistry extends FailbackRegistry {
                 }
                 throw new RuntimeException(t.getMessage(), t);
             }
-            logger.error("Failed to connect to registry " + getUrl().getAddress() + " from provider/consumer " + NetUtils.getLocalHost() + " use dubbo " + Version.getVersion() + ", cause: " + t.getMessage(), t);
+            logger.error("Failed to connect to registry " + getUrl().getAddress() +
+                    " from provider/consumer " + NetUtils.getLocalHost() + " use dubbo " +
+                    Version.getVersion() + ", cause: " + t.getMessage(), t);
         }
     }
 
