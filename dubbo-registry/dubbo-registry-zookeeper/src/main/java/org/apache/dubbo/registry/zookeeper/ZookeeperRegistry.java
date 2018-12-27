@@ -81,6 +81,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
         });
     }
 
+    // 添加默认的Zookeeper端口号2181
     static String appendDefaultPort(String address) {
         if (address != null && address.length() > 0) {
             int i = address.indexOf(':');
@@ -90,7 +91,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                 return address.substring(0, i + 1) + DEFAULT_ZOOKEEPER_PORT;
             }
         }
-        return address;
+        return address;//如127.0.0.1:2181
     }
 
     @Override
@@ -102,39 +103,49 @@ public class ZookeeperRegistry extends FailbackRegistry {
     public void destroy() {
         super.destroy();
         try {
-            zkClient.close();
+            zkClient.close(); //关闭连接
         } catch (Exception e) {
             logger.warn("Failed to close zookeeper client " + getUrl() + ", cause: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 注册
+     * 提供者Provider调用doRegister方法注册服务
      * @param url
      */
     @Override
     public void doRegister(URL url) {
         try {
-            // 第二个参数代表是否是临时节点为true/false
+            // 在Zookeeper写入服务，第二个参数代表是否是临时节点为true/false
             zkClient.create(toUrlPath(url), url.getParameter(Constants.DYNAMIC_KEY, true));
         } catch (Throwable e) {
             throw new RpcException("Failed to register " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);
         }
     }
 
+    /**
+     *  提供者Provider调用doUnregister方法注销服务
+     * @param url
+     */
     @Override
     public void doUnregister(URL url) {
         try {
+            // 取消注册
             zkClient.delete(toUrlPath(url));
         } catch (Throwable e) {
             throw new RpcException("Failed to unregister " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);
         }
     }
 
+    /**
+     * 消费者Consumer订阅服务
+     * @param url
+     * @param listener
+     */
     @Override
     public void doSubscribe(final URL url, final NotifyListener listener) {
         try {
-            if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {
+            if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {// *
                 String root = toRootPath();
                 ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                 if (listeners == null) {
@@ -148,7 +159,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                         public void childChanged(String parentPath, List<String> currentChilds) {
                             for (String child : currentChilds) {
                                 child = URL.decode(child);
-                                if (!anyServices.contains(child)) {
+                                if (!anyServices.contains(child)) {//相当于增加了新提供者
                                     anyServices.add(child);
                                     subscribe(url.setPath(child).addParameters(Constants.INTERFACE_KEY, child,
                                             Constants.CHECK_KEY, String.valueOf(false)), listener);
@@ -225,7 +236,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
         try {
             List<String> providers = new ArrayList<String>();
             for (String path : toCategoriesPath(url)) {
-                List<String> children = zkClient.getChildren(path);
+                List<String> children = zkClient.getChildren(path);//获取所有的子节点
                 if (children != null) {
                     providers.addAll(children);
                 }

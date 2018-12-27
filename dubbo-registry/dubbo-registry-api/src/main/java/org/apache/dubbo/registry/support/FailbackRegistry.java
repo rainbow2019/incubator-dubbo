@@ -285,7 +285,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         removeFailedSubscribed(url, listener);
         try {
             // Sending a subscription request to the server side
-            doSubscribe(url, listener);
+            doSubscribe(url, listener);//模板方法，让具体实现类去实现
         } catch (Exception e) {
             Throwable t = e;
 
@@ -308,7 +308,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
                 }
             }
 
-            // Record a failed registration request to a failed list, retry regularly
+            // Record a failed registration request to a failed list, retry regularly 定期重试
             addFailedSubscribed(url, listener);
         }
     }
@@ -396,15 +396,15 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     }
 
     // ==== Template method ====
-    // 模板设计模式: 模板方法
+    // 模板设计模式: 模板方法；让实现类去实现
 
-    public abstract void doRegister(URL url);
+    public abstract void doRegister(URL url);//注册服务
 
-    public abstract void doUnregister(URL url);
+    public abstract void doUnregister(URL url);//注销服务
 
-    public abstract void doSubscribe(URL url, NotifyListener listener);
+    public abstract void doSubscribe(URL url, NotifyListener listener);//订阅服务
 
-    public abstract void doUnsubscribe(URL url, NotifyListener listener);
+    public abstract void doUnsubscribe(URL url, NotifyListener listener);//取消订阅服务
 
     static class Holder {
 
